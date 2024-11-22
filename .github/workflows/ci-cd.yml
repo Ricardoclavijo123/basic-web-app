@@ -1,0 +1,84 @@
+name: CI/CD Pipeline
+
+# Define los eventos que desencadenan el pipeline. En este caso, cada push al repositorio
+on:
+  push:
+    branches:
+      - main    # Ejecutar en la rama principal (cambiar a "dev" si usas una rama de desarrollo)
+  pull_request:
+    branches:
+      - main    # Ejecutar también en pull requests hacia la rama principal
+
+# Define los trabajos que deben ejecutarse
+jobs:
+  build:
+    runs-on: ubuntu-latest    # Utilizar una máquina virtual con Ubuntu
+
+    steps:
+      # Paso 1: Check out el código desde el repositorio
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Paso 2: Configurar Node.js (para backend y frontend)
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'   # Especifica la versión de Node.js
+
+      # Paso 3: Instalar dependencias (backend y frontend)
+      - name: Install dependencies (Backend)
+        run: |
+          cd backend
+          npm install
+
+      - name: Install dependencies (Frontend)
+        run: |
+          cd frontend
+          npm install
+
+      # Paso 4: Ejecutar pruebas
+      - name: Run backend tests
+        run: |
+          cd backend
+          npm run test
+
+      - name: Run frontend tests
+        run: |
+          cd frontend
+          npm test
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build      # El trabajo de despliegue depende del trabajo de build
+
+    steps:
+      # Paso 1: Check out el código nuevamente
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Paso 2: Configurar Node.js nuevamente
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      # Paso 3: Instalar dependencias y compilar (frontend y backend)
+      - name: Install dependencies (Backend)
+        run: |
+          cd backend
+          npm install
+
+      - name: Install dependencies (Frontend)
+        run: |
+          cd frontend
+          npm install
+
+      # Paso 4: Despliegue a un servidor o servicio de hosting
+      # Este paso es un ejemplo de despliegue usando un servicio de nube como Heroku o AWS.
+      # Para Heroku (por ejemplo, si usas su CLI para despliegue)
+      - name: Deploy to Heroku (Backend)
+        run: |
+          git remote add heroku https://git.heroku.com/your-app.git
+          git push heroku main
+
+      # Si estás desplegando en otra plataforma, ajusta este paso según sea necesario.
